@@ -2,9 +2,11 @@ name: Comiczone Kakao Watcher
 
 on:
   schedule:
+    # 매일 한국시간 오후 12:10
     - cron: "10 12 * * *"
       timezone: "Asia/Seoul"
 
+  # 수동 테스트용 버튼도 유지
   workflow_dispatch:
 
 permissions:
