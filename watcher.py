@@ -98,6 +98,9 @@ def refresh_kakao_access_token():
         timeout=REQUEST_TIMEOUT,
     )
 
+    print("Kakao token status:", response.status_code)
+    print("Kakao token response:", response.text)
+
     response.raise_for_status()
 
     result = response.json()
