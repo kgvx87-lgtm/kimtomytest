@@ -1,0 +1,54 @@
+name: Comiczone Kakao Watcher
+
+on:
+  schedule:
+    - cron: "10 12 * * *"
+      timezone: "Asia/Seoul"
+
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: comiczone-kakao-watcher
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Watch Comiczone
+        env:
+          TARGET_URL: ${{ secrets.TARGET_URL }}
+          KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
+          KAKAO_CLIENT_SECRET: ${{ secrets.KAKAO_CLIENT_SECRET }}
+          KAKAO_TOKEN_KEY: ${{ secrets.KAKAO_TOKEN_KEY }}
+        run: python watcher.py
+
+      - name: Persist watcher state
+        run: |
+          if git diff --quiet -- seen.json kakao_refresh_token.enc; then
+            echo "변경 없음"
+            exit 0
+          fi
+
+          git config user.name "comiczone-watcher"
+          git config user.email "comiczone-watcher@users.noreply.github.com"
+
+          git add seen.json kakao_refresh_token.enc
+          git commit -m "Update Comiczone watcher state"
+          git push
